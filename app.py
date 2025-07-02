@@ -23,7 +23,7 @@ trains_table = dynamodb.Table('trains') # Note: This table is declared but not u
 bookings_table = dynamodb.Table('bookings')
 
 
-SNS_TOPIC_ARN = 'arn:aws:sns:us-east-1:149536455348:TravelGo:75e796e5-dff4-4ae3-a2d8-2de8250743da'  # Replace with actual SNS topic ARN
+SNS_TOPIC_ARN = 'arn:aws:sns:us-east-1:324037304857:TRAVELGO:6486b6e1-2fd5-47bd-bcca-e43c17372af9'  # Replace with actual SNS topic ARN
 
 
 # Function to send SNS notifications
@@ -111,18 +111,12 @@ def confirm_bus_details():
     destination = request.args.get('destination')
     time = request.args.get('time')
     bus_type = request.args.get('type')
-    price_str = request.args.get('price')
-    print("DEBUG: Received price =", price_str)
-    try:
-        price_per_person = Decimal(price_str)
-    except (ValueError, TypeError):
-        flash('Invalid price format.', 'error')
-        return redirect(url_for('bus'))
+    price_per_person = float(request.args.get('price'))
     travel_date = request.args.get('date')
     num_persons = int(request.args.get('persons'))
     bus_id = request.args.get('busId')
     selected_seats = request.args.getlist('seats[]')  # coming from JS modal
-    total_price = price_per_person * Decimal(num_persons)
+    total_price = price_per_person * num_persons
 
     booking_details = {
         'name': name,
@@ -222,17 +216,11 @@ def confirm_train_details():
     destination = request.args.get('destination')
     departure_time = request.args.get('departureTime')
     arrival_time = request.args.get('arrivalTime')
-    price_str = request.args.get('price')
-    print("DEBUG: Received train price =", price_str)
-    try:
-        price_per_person = Decimal(price_str)
-    except (ValueError, TypeError):
-        flash('Invalid train price format.', 'error')
-        return redirect(url_for('train'))
+    price_per_person = float(request.args.get('price'))
     travel_date = request.args.get('date')
     num_persons = int(request.args.get('persons'))
     train_id = request.args.get('trainId')
-    total_price = price_per_person * Decimal(num_persons)
+    total_price = price_per_person * num_persons
     booking_details = {
         'name': name,
         'train_number': train_number,
@@ -332,13 +320,7 @@ def confirm_hotel_details():
         'checkout_date':   request.args.get('checkout'),
         'num_rooms':       int(request.args.get('rooms')),
         'num_guests':      int(request.args.get('guests')),
-        price_str = request.args.get('price')
-        print("DEBUG: Hotel price =", price_str)
-        try:
-            price_per_night = Decimal(price_str)
-        except (ValueError, TypeError):
-            flash("Invalid hotel price format.", 'error')
-            return redirect(url_for('hotel'))
+        'price_per_night': float(request.args.get('price')),
         'rating':          int(request.args.get('rating'))
     }
     # compute nights & total
@@ -362,7 +344,7 @@ def confirm_hotel_booking():
         'checkout_date':   request.form['checkout'],
         'num_rooms':       int(request.form['rooms']),
         'num_guests':      int(request.form['guests']),
-        'price_per_night': price_per_night,
+        'price_per_night': float(request.form['price']),
         'rating':          int(request.form['rating']),
         'user_email':      session['email'],
         'booking_date':    datetime.now().isoformat()
@@ -420,16 +402,10 @@ def confirm_flight_details():
     arrival_time = request.args.get('arrival')
     travel_date = request.args.get('date')
     num_persons = int(request.args.get('passengers'))
-    price_str = request.args.get('price')
-    print("DEBUG: Flight price =", price_str)
-    try:
-        price_per_person = Decimal(price_str)
-    except (ValueError, TypeError):
-        flash("Invalid flight price format.", 'error')
-        return redirect(url_for('flight'))
+    price_per_person = float(request.args.get('price'))
     flight_class = request.args.get('class')  # ✅ make sure this is fetched
 
-    total_price = Decimal(num_persons) * price_per_person
+    total_price = num_persons * price_per_person
 
     booking = {
         'flight_id': flight_id,
@@ -494,9 +470,9 @@ def confirm_flight_booking():
         'arrival_time':      request.form['arrival_time'],
         'flight_class':      flight_class,  # ✅ important to store this
         'travel_date':       travel_date,
-        'num_persons':       Decimal(request.form['num_persons']),
-        'price_per_person':  Decimal(request.form['price_per_person']),
-        'total_price':       Decimal(request.form['total_price']),
+        'num_persons':       int(request.form['num_persons']),
+        'price_per_person':  float(request.form['price_per_person']),
+        'total_price':       float(request.form['total_price']),
         'selected_seats':    selected_seats,
         'user_email':        session['email'],
         'booking_date':      datetime.now().isoformat()
